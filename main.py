@@ -51,10 +51,22 @@ class Evil_Pomodoro():
         pass
 
 def submit_time():
-    time = time_var.get()
-    print(time)
+    try:
+        time = int(time_var.get())
+        print(time)
+    except:
+        print("Add valid time")
+        
+def slider():
+    if slider_btn.config("relief")[-1] == "sunken":
+        slider_btn.configure(image=img_slider_off)
+        slider_btn.config(relief="raised")
+    else:
+        slider_btn.configure(image=img_slider_on)
+        slider_btn.config(relief="sunken")
 
 if __name__ == "__main__":
+    
     pomodoro = Evil_Pomodoro()
     pomodoro.main()
     root = tk.Tk()
@@ -76,10 +88,15 @@ if __name__ == "__main__":
     time_var = tk.StringVar()
     time_entry = tk.Entry(root, textvariable=time_var)
     default_work = time_entry.insert(-1, "25")
-    start_btn = tk.Button(root, text="Start Work", command= submit_time)
-    
+    start_btn = tk.Button(root, text="Start", command= submit_time)
+    select_btn = tk.Button(root, text="Select apps", command=pomodoro.set_allowed_process)
+    img_slider_on = tk.PhotoImage(file=".\\art\\slider-on.png")
+    img_slider_off = tk.PhotoImage(file=".\\art\\slider-off.png")
+    slider_btn = tk.Button(root, image=img_slider_on, command=slider, relief="raised")
     
     quit_btn.grid(row=0, column=0)
     start_btn.grid(row=1, column=0)
     time_entry.grid(row=2, column=0)
+    select_btn.grid(row=3, column=0)
+    slider_btn.grid(row=4, column=0)
     root.mainloop()

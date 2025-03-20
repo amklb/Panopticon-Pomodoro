@@ -8,7 +8,7 @@ from tkinter import ttk
 class Evil_Pomodoro():
     def __init__(self):
         self.allowed_windows = []
-
+        self.set_time = 0
     def get_current_process(self):
         try:
             process_name = psutil.Process(GetWindowThreadProcessId(GetForegroundWindow())[-1]).name()
@@ -17,39 +17,30 @@ class Evil_Pomodoro():
             return pd.NA
         
     def set_allowed_process(self):
+        sleep(3)
+        current_window = self.get_current_process()
+        if len(current_window) > 0:
+            self.allowed_windows.append(current_window)
+            print(self.allowed_windows)
         root.attributes("-topmost", True)
         root.update()
         root.attributes("-topmost", False)
 
-        # while True:
-        #     key = input("Press Y to add new window. Press N to finish adding windows.")
-        #     if key.upper() == "Y":
-        #         print("Open window you want to add in 3...")
-        #         sleep(1)
-        #         print("...2...")
-        #         sleep(1)
-        #         print("..1..")
-        #         sleep(1)
-        #         current_window = self.get_current_process()
-        #         while True:
-        #             confirm = input(f"{current_window} added! Confirm Y/N?")
-        #             if confirm.upper() == "Y":
-        #                 self.allowed_windows.append(current_window)
-        #             if confirm.upper() == "N":
-        #                 break
-        #             else:
-        #                 print("Invalid answer!")
-        #             sleep(0.2)
-        #     if key.upper() == "N":
-        #         break
-        #     else:
-        #         print("Invalid answer!")
+        
 
-    def work_timer(self):
-        pass
+    def timer(self):
+        current_time = self.set_time
+        print(current_time)
+        while current_time > 0:
+            current_app = self.get_current_process()
+            if current_app in self.allowed_windows or len(self.allowed_windows) == 0:
+                current_time -= 1
+                sleep(1)
+                print(current_time)
+            else:
+                sleep(1)
+                print(current_time)
 
-    def break_timer(self):
-        pass
 
     def main(self):
         pass
@@ -57,6 +48,8 @@ class Evil_Pomodoro():
 def submit_b_time():
     try:
         time = int(b_time_var.get())
+        pomodoro.set_time = 60*time
+        pomodoro.timer()
         print(time)
     except:
         print("Add valid time")
@@ -64,32 +57,12 @@ def submit_b_time():
 def submit_w_time():
     try:
         time = int(w_time_var.get())
+        pomodoro.set_time = 60*time
+        pomodoro.timer()
         print(time)
     except:
         print("Add valid time")
-# def slider():
-#     if slider_btn.config("relief")[-1] == "sunken":
-#         slider_btn.configure(image=img_slider_off)
-#         frame_break.tkraise()
-#         slider_btn.config(relief="raised")
-#     else:
-#         slider_btn.configure(image=img_slider_on)
-#         frame_break.tkraise()
-#         slider_btn.config(relief="sunken")
 
-# class App():
-#     def __init__(self):
-#         pass
-
-# class Work_Page():
-#     def __init__(self):
-#         pass
-# class Break_Page():
-#     def __init__(self):
-#         pass
-# class Apps_Page():
-#     def __init__(self):
-#         pass
 
 if __name__ == "__main__":
     
@@ -126,6 +99,8 @@ if __name__ == "__main__":
 
     for frame in (frame_apps, frame_break, frame_work):
         frame.grid(row=0, column=0, sticky='news')
+
+    
     # WORK FRAME
     tk.Button(frame_work, command=frame_break.tkraise, image=img_slider_off).pack()
     tk.Label(frame_work, text='FRAME Work').pack()
@@ -145,6 +120,7 @@ if __name__ == "__main__":
     # APPS FRAME
     tk.Label(frame_apps, text='FRAME apps').pack(side='left')
     tk.Button(frame_apps, text='Go back ->', command=frame_work.tkraise).pack(side='left')
+    tk.Button(frame_apps, text="ADD", command=pomodoro.set_allowed_process).pack()
 
 
     frame_work.tkraise()

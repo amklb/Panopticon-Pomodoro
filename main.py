@@ -4,11 +4,13 @@ from win32process import GetWindowThreadProcessId
 import pandas as pd
 import psutil
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox
 class Evil_Pomodoro():
     def __init__(self):
         self.allowed_windows = []
         self.set_time = 0
+        self.total_work = 1293333333
+        self.total_break = 0
     def get_current_process(self):
         try:
             process_name = psutil.Process(GetWindowThreadProcessId(GetForegroundWindow())[-1]).name()
@@ -28,19 +30,41 @@ class Evil_Pomodoro():
 
         
 
-    def timer(self):
+    def timer_w(self):
         current_time = self.set_time
         print(current_time)
         while current_time > 0:
+            m, s = divmod(current_time, 60)
+            minutes.set(f"{m:02d}")
+            seconds.set(f"{s:02d}")
+            root.update()
             current_app = self.get_current_process()
             if current_app in self.allowed_windows or len(self.allowed_windows) == 0:
                 current_time -= 1
                 sleep(1)
                 print(current_time)
+                self.total_work += 1
+                work_t.set(f"Total minutes of work: {(self.total_work//60):02d}:{(self.total_work%60):02d}")
+                
             else:
                 sleep(1)
                 print(current_time)
+                self.total_break += 1
+                break_t.set(f"Total minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
 
+    def timer_b(self):
+        current_time = self.set_time
+        print(current_time)
+        while current_time > 0:
+            m, s = divmod(current_time, 60)
+            minutes.set(f"{m:02d}")
+            seconds.set(f"{s:02d}")
+            root.update()
+            current_time -= 1
+            sleep(1)
+            print(current_time)
+            self.total_break += 1
+            break_t.set(f"Total minutes of break: {(self.total_break/60):02d}:{(self.total_break%60):02d}")
 
     def main(self):
         pass
@@ -49,19 +73,19 @@ def submit_b_time():
     try:
         time = int(b_time_var.get())
         pomodoro.set_time = 60*time
-        pomodoro.timer()
+        pomodoro.timer_b()
         print(time)
     except:
-        print("Add valid time")
+        messagebox.showwarning(title= "Give Tomato a break!", message="Please enter vaild time in minutes:<")
 
 def submit_w_time():
     try:
         time = int(w_time_var.get())
         pomodoro.set_time = 60*time
-        pomodoro.timer()
+        pomodoro.timer_w()
         print(time)
     except:
-        print("Add valid time")
+        messagebox.showwarning(title= "Tomato does not understand!", message="Please enter vaild time in minutes:<")
 
 
 if __name__ == "__main__":
@@ -100,7 +124,17 @@ if __name__ == "__main__":
     for frame in (frame_apps, frame_break, frame_work):
         frame.grid(row=0, column=0, sticky='news')
 
+    minutes = tk.StringVar(root)
+    minutes.set("00")
+    seconds = tk.StringVar(root)
+    work_t = tk.StringVar(root)
+    work_t.set("Total minutes of work: 00:00")
+    break_t = tk.StringVar(root)
+    break_t.set("Total minutes of break: 00:00")
+    seconds.set("00")
     
+    tk.Label(frame_work, textvariable=break_t,).pack(side="bottom")
+    tk.Label(frame_work, textvariable=work_t,).pack(side="bottom")
     # WORK FRAME
     tk.Button(frame_work, command=frame_break.tkraise, image=img_slider_off).pack()
     tk.Label(frame_work, text='FRAME Work').pack()
@@ -109,6 +143,8 @@ if __name__ == "__main__":
     w_time_entry = tk.Entry(frame_work, textvariable=w_time_var)
     w_time_entry.pack()
     tk.Button(frame_work, text="Start", command= submit_w_time).pack()
+    tk.Label(frame_work, textvariable=minutes).pack()
+    tk.Label(frame_work, textvariable=seconds).pack()
     # BREAK FRAME
     tk.Label(frame_break, text='FRAME break').pack()
     tk.Button(frame_break, command=frame_work.tkraise, image=img_slider_on).pack()
@@ -116,6 +152,8 @@ if __name__ == "__main__":
     b_time_var = tk.StringVar()
     b_time_entry = tk.Entry(frame_break, textvariable=b_time_var)
     b_time_entry.pack()
+    tk.Label(frame_break, textvariable=minutes).pack()
+    tk.Label(frame_break, textvariable=seconds).pack()
     tk.Button(frame_break, text="Start", command= submit_b_time).pack()
     # APPS FRAME
     tk.Label(frame_apps, text='FRAME apps').pack(side='left')

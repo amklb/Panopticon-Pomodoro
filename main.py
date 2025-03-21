@@ -5,33 +5,46 @@ import pandas as pd
 import psutil
 import tkinter as tk
 from tkinter import messagebox
+import sys
 class Evil_Pomodoro():
     def __init__(self):
         self.allowed_windows = []
         self.set_time = 0
-        self.total_work = 1293333333
+        self.total_work = 0
         self.total_break = 0
+        self.paused = False
     def get_current_process(self):
         try:
             process_name = psutil.Process(GetWindowThreadProcessId(GetForegroundWindow())[-1]).name()
             return process_name
         except:
-            return pd.NA
+            return -1
         
     def set_allowed_process(self):
         sleep(3)
         current_window = self.get_current_process()
-        if len(current_window) > 0:
+        if current_window != -1:
             self.allowed_windows.append(current_window)
+            apps_list.insert(tk.END, current_window)
             print(self.allowed_windows)
         root.attributes("-topmost", True)
         root.update()
         root.attributes("-topmost", False)
+    
+    def delete_allowed_app(self):
+        selection = apps_list.curselection()
+        if selection:
+            apps_list.delete(selection[0])
+            del self.allowed_windows[selection[0]]
+        else:
+            messagebox.showwarning(title="Cannot delete!", message="Please select item for deletion!")
 
-        
-
+   
     def timer_w(self):
-        current_time = self.set_time
+        if self.paused == False:
+            current_time = self.set_time
+        else:
+            self.paused = False
         print(current_time)
         while current_time > 0:
             m, s = divmod(current_time, 60)
@@ -53,7 +66,10 @@ class Evil_Pomodoro():
                 break_t.set(f"Total minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
 
     def timer_b(self):
-        current_time = self.set_time
+        if self.paused == False:
+            current_time = self.set_time
+        else:
+            self.paused = False
         print(current_time)
         while current_time > 0:
             m, s = divmod(current_time, 60)
@@ -87,6 +103,8 @@ def submit_w_time():
     except:
         messagebox.showwarning(title= "Tomato does not understand!", message="Please enter vaild time in minutes:<")
 
+def close_protocol():
+    sys.exit()
 
 if __name__ == "__main__":
     
@@ -115,7 +133,7 @@ if __name__ == "__main__":
     select_btn = tk.Button(root, text="Select apps", command=pomodoro.set_allowed_process)
     img_slider_on = tk.PhotoImage(file=".\\art\\slider-on.png")
     img_slider_off = tk.PhotoImage(file=".\\art\\slider-off.png")
-    
+    root.protocol("WM_DELETE_WINDOW", close_protocol)
     
 
     
@@ -159,7 +177,9 @@ if __name__ == "__main__":
     tk.Label(frame_apps, text='FRAME apps').pack(side='left')
     tk.Button(frame_apps, text='Go back ->', command=frame_work.tkraise).pack(side='left')
     tk.Button(frame_apps, text="ADD", command=pomodoro.set_allowed_process).pack()
-
+    tk.Button(frame_apps, text="Delete", command=pomodoro.delete_allowed_app).pack()
+    apps_list = tk.Listbox(frame_apps)
+    apps_list.pack()
 
     frame_work.tkraise()
     root.mainloop()

@@ -12,7 +12,9 @@ class Evil_Pomodoro():
         self.set_time = 0
         self.total_work = 0
         self.total_break = 0
+        self.current_time = 0
         self.paused = False
+        self.frame = 0
     def get_current_process(self):
         try:
             process_name = psutil.Process(GetWindowThreadProcessId(GetForegroundWindow())[-1]).name()
@@ -23,13 +25,17 @@ class Evil_Pomodoro():
     def set_allowed_process(self):
         sleep(3)
         current_window = self.get_current_process()
-        if current_window != -1:
-            self.allowed_windows.append(current_window)
-            apps_list.insert(tk.END, current_window)
-            print(self.allowed_windows)
         root.attributes("-topmost", True)
         root.update()
         root.attributes("-topmost", False)
+        if current_window != -1 and current_window not in self.allowed_windows:
+            self.allowed_windows.append(current_window)
+            apps_list.insert(tk.END, current_window)
+            print(self.allowed_windows)
+        elif current_window in self.allowed_windows:
+            messagebox.showinfo(message="Window aleardy added!")
+        
+        
     
     def delete_allowed_app(self):
         selection = apps_list.curselection()
@@ -41,46 +47,52 @@ class Evil_Pomodoro():
 
    
     def timer_w(self):
-        if self.paused == False:
-            current_time = self.set_time
-        else:
-            self.paused = False
-        print(current_time)
-        while current_time > 0:
-            m, s = divmod(current_time, 60)
+        if self.current_time > 0:
+            m, s = divmod(self.current_time, 60)
             minutes.set(f"{m:02d}")
             seconds.set(f"{s:02d}")
             root.update()
             current_app = self.get_current_process()
-            if current_app in self.allowed_windows or len(self.allowed_windows) == 0:
-                current_time -= 1
-                sleep(1)
-                print(current_time)
-                self.total_work += 1
-                work_t.set(f"Total minutes of work: {(self.total_work//60):02d}:{(self.total_work%60):02d}")
-                
-            else:
-                sleep(1)
-                print(current_time)
-                self.total_break += 1
-                break_t.set(f"Total minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
+            if not self.paused:
+                if current_app in self.allowed_windows or len(self.allowed_windows) == 0:
+                    self.current_time -= 1
+                    root.after(1000, self.timer_w)
+                    self.total_work += 1
+                    work_t.set(f"Total minutes of work: {(self.total_work//60):02d}:{(self.total_work%60):02d}")
+                else:
+                    root.after(1000, self.timer_w)
+                    self.total_break += 1
+                    break_t.set(f"Total minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
+
 
     def timer_b(self):
-        if self.paused == False:
-            current_time = self.set_time
-        else:
-            self.paused = False
-        print(current_time)
-        while current_time > 0:
-            m, s = divmod(current_time, 60)
+        if self.current_time > 0:
+            m, s = divmod(self.current_time, 60)
             minutes.set(f"{m:02d}")
             seconds.set(f"{s:02d}")
             root.update()
-            current_time -= 1
-            sleep(1)
-            print(current_time)
+            root.after(1000, self.timer_w)
             self.total_break += 1
-            break_t.set(f"Total minutes of break: {(self.total_break/60):02d}:{(self.total_break%60):02d}")
+            break_t.set(f"Total minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
+
+
+    def pause_timer(self):
+        if self.paused == False:
+            self.paused = True
+        elif self.paused == True:
+            self.paused = False
+            if self.frame == 0:
+                self.timer_w()
+            elif self.frame == 1:
+                self.timer_b()
+    
+    def stop_timer(self):
+        self.paused = True
+        self.current_time = 0
+        self.paused = False
+        minutes.set("00")
+        seconds.set("00")
+        root.update()
 
     def main(self):
         pass
@@ -88,7 +100,7 @@ class Evil_Pomodoro():
 def submit_b_time():
     try:
         time = int(b_time_var.get())
-        pomodoro.set_time = 60*time
+        pomodoro.current_time = 60*time
         pomodoro.timer_b()
         print(time)
     except:
@@ -97,14 +109,12 @@ def submit_b_time():
 def submit_w_time():
     try:
         time = int(w_time_var.get())
-        pomodoro.set_time = 60*time
+        pomodoro.current_time = 60*time
         pomodoro.timer_w()
         print(time)
     except:
-        messagebox.showwarning(title= "Tomato does not understand!", message="Please enter vaild time in minutes:<")
+       messagebox.showwarning(title= "Tomato does not understand!", message="Please enter vaild time in minutes:<")
 
-def close_protocol():
-    sys.exit()
 
 if __name__ == "__main__":
     
@@ -133,7 +143,6 @@ if __name__ == "__main__":
     select_btn = tk.Button(root, text="Select apps", command=pomodoro.set_allowed_process)
     img_slider_on = tk.PhotoImage(file=".\\art\\slider-on.png")
     img_slider_off = tk.PhotoImage(file=".\\art\\slider-off.png")
-    root.protocol("WM_DELETE_WINDOW", close_protocol)
     
 
     
@@ -163,6 +172,8 @@ if __name__ == "__main__":
     tk.Button(frame_work, text="Start", command= submit_w_time).pack()
     tk.Label(frame_work, textvariable=minutes).pack()
     tk.Label(frame_work, textvariable=seconds).pack()
+    tk.Button(frame_work, text="Pause/Unpause", command= pomodoro.pause_timer).pack()
+    tk.Button(frame_work, text="Stop", command=pomodoro.stop_timer).pack()
     # BREAK FRAME
     tk.Label(frame_break, text='FRAME break').pack()
     tk.Button(frame_break, command=frame_work.tkraise, image=img_slider_on).pack()

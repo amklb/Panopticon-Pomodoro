@@ -276,7 +276,7 @@ class Evil_Pomodoro():
                     fg="#6c6b5a").place(x=16, y=320)
         tk.Label(self.frame_break,
                   textvariable=self.work_t,
-                    #font=("Minecraft", 9),
+                    font=("Minecraft", 9),
                     bg= "#c6cbc1",
                     fg="#6c6b5a").place(x=190, y=320)
         

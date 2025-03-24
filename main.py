@@ -5,6 +5,7 @@ import psutil
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
+import pyglet
 
 
             
@@ -81,7 +82,7 @@ class Evil_Pomodoro():
                 m, s = divmod(self.current_time, 60)
                 self.minute.set(f"{m:02d}:{s:02d}")
                 self.root.update()
-                self.after_id = self.root.after(1000, self.timer_w)
+                self.after_id = self.root.after(1000, self.timer_b)
                 self.total_break += 1
                 self.break_t.set(f"Minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
             elif self.current_time <= 0:
@@ -164,23 +165,9 @@ class Evil_Pomodoro():
         img_back = tk.PhotoImage(file=".\\art\\back.png")
         img_add = tk.PhotoImage(file=".\\art\\add.png")
         img_delete = tk.PhotoImage(file=".\\art\\delete.png")
-        # Setting up GIFs
-        frame_number = 8
-        gif_work = [tk.PhotoImage(file=".\\art\\work_tomat.gif", format = 'gif -index %i' %(i)) for i in range(frame_number)]
-        gif_break = [tk.PhotoImage(file=".\\art\\break_tomat.gif", format = 'gif -index %i' %(i)) for i in range(frame_number)]
-
-        def update(ind):
-
-            frame = gif_break[ind]
-            ind += 1
-            if ind == frame_number:
-                ind = 0
-            label.configure(image=frame)
-            self.root.after(100, update, ind)
-        label = tk.Label(self.frame_work)
-        
-        self.root.after(0, update, 0)
-
+        # Adding font
+        pyglet.font.add_file(".\\font\\Minecraft.ttf")
+    
 
         self.minute = tk.StringVar(self.root)
         self.minute.set("00:00")
@@ -289,7 +276,7 @@ class Evil_Pomodoro():
                     fg="#6c6b5a").place(x=16, y=320)
         tk.Label(self.frame_break,
                   textvariable=self.work_t,
-                    font=("Minecraft", 9),
+                    #font=("Minecraft", 9),
                     bg= "#c6cbc1",
                     fg="#6c6b5a").place(x=190, y=320)
         
@@ -341,7 +328,7 @@ class Evil_Pomodoro():
 class AnimatedGIF(tk.Label):
     def __init__(self, master, gif_path):
         tk.Label.__init__(self, master)
-        self.frames = []
+        self.gif_frames = []
         self.current_frame = 0
 
        
@@ -349,17 +336,17 @@ class AnimatedGIF(tk.Label):
         try:
             while True:
                 frame = ImageTk.PhotoImage(gif.copy())
-                self.frames.append(frame)
-                gif.seek(len(self.frames))  
+                self.gif_frames.append(frame)
+                gif.seek(len(self.gif_frames))  
         except EOFError:
             pass  
 
         self.update_animation()
 
     def update_animation(self):
-        if self.frames:
-            self.configure(image=self.frames[self.current_frame], bg= "#c6cbc1")
-            self.current_frame = (self.current_frame + 1) % len(self.frames)
+        if self.gif_frames:
+            self.configure(image=self.gif_frames[self.current_frame], bg= "#c6cbc1")
+            self.current_frame = (self.current_frame + 1) % len(self.gif_frames)
             self.after(600, self.update_animation) 
 
 if __name__ == "__main__":

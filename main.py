@@ -34,8 +34,7 @@ class Evil_Pomodoro():
             self.apps_list.insert(tk.END, current_window)
             print(self.allowed_windows)
         elif current_window in self.allowed_windows:
-            if not self.paused:
-                messagebox.showinfo(message="Window aleardy added!")
+            messagebox.showinfo(message="Window aleardy added!")
         
         
     
@@ -51,8 +50,7 @@ class Evil_Pomodoro():
     def timer_w(self):
         if self.current_time > 0:
             m, s = divmod(self.current_time, 60)
-            self.minute.set(f"{m:02d}")
-            self.seconds.set(f"{s:02d}")
+            self.minute.set(f"{m:02d}:{s:02d}")
             self.root.update()
             current_app = self.get_current_process()
             
@@ -61,12 +59,12 @@ class Evil_Pomodoro():
                 self.current_time -= 1
                 
                 self.total_work += 1
-                self.work_t.set(f"Total self.minute of work: {(self.total_work//60):02d}:{(self.total_work%60):02d}")
+                self.work_t.set(f"Minutes of work: {(self.total_work//60):02d}:{(self.total_work%60):02d}")
                 self.after_id = self.root.after(1000, self.timer_w)
             else:
                 
                 self.total_break += 1
-                self.break_t.set(f"Total self.minute of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
+                self.break_t.set(f"Minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
                 self.after_id = self.root.after(1000, self.timer_w)
 
         elif self.current_time <= 0 and not self.paused:
@@ -79,12 +77,11 @@ class Evil_Pomodoro():
     def timer_b(self):
             if self.current_time > 0:
                 m, s = divmod(self.current_time, 60)
-                self.minute.set(f"{m:02d}")
-                self.seconds.set(f"{s:02d}")
+                self.minute.set(f"{m:02d}:{s:02d}")
                 self.root.update()
                 self.after_id = self.root.after(1000, self.timer_w)
                 self.total_break += 1
-                self.break_t.set(f"Total self.minute of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
+                self.break_t.set(f"Minutes of break: {(self.total_break//60):02d}:{(self.total_break%60):02d}")
             elif self.current_time <= 0:
                 self.root.attributes("-topmost", True)
                 self.root.update()
@@ -107,8 +104,7 @@ class Evil_Pomodoro():
     def stop_timer(self):
         if hasattr(self, "after_id"): 
                 self.root.after_cancel(self.after_id)
-        self.minute.set("00")
-        self.seconds.set("00")
+        self.minute.set("00:00")
         self.root.update()
     
 
@@ -148,15 +144,12 @@ class Evil_Pomodoro():
         self.root.geometry("350x350")
         self.root.title("Panopticon Pomodoro")
 
-        self.frame_work = tk.Frame(self.root)
+        self.frame_work = tk.Frame(self.root, bg="#c6cbc1")
         self.frame_apps = tk.Frame(self.root)
         self.frame_break = tk.Frame(self.root)
 
         background_image = tk.PhotoImage(file=".\\art\\background.png")
-        img_text = tk.PhotoImage(file=".\\art\\background_text.png")
-        background_label = tk.Label(self.root, image=background_image)
-        background_label.place(x=0, y=0, relheight=1, relwidth=1)
-        self.root.wm_attributes('-transparentcolor', 'grey')
+        background_image_text = tk.PhotoImage(file=".\\art\\background_text.png")
 
         
         img_slider_on = tk.PhotoImage(file=".\\art\\slider-on.png")
@@ -165,60 +158,159 @@ class Evil_Pomodoro():
         img_stop = tk.PhotoImage(file=".\\art\\stop.png")
         img_start = tk.PhotoImage(file=".\\art\\start.png")
         img_apps = tk.PhotoImage(file=".\\art\\apps.png")
+        img_back = tk.PhotoImage(file=".\\art\\back.png")
+        img_add = tk.PhotoImage(file=".\\art\\add.png")
+        img_delete = tk.PhotoImage(file=".\\art\\delete.png")
 
         self.minute = tk.StringVar(self.root)
-        self.minute.set("00")
-        self.seconds = tk.StringVar(self.root)
+        self.minute.set("00:00")
+        
         self.work_t = tk.StringVar(self.root)
-        self.work_t.set("Total minutes of work: 00:00")
+        self.work_t.set("Minutes of work: 00:00")
         self.break_t = tk.StringVar(self.root)
-        self.break_t.set("Total minutes of break: 00:00")
-        self.seconds.set("00")
+        self.break_t.set("Minutes of break: 00:00")
         
         
 
         for frame in (self.frame_apps, self.frame_break, self.frame_work):
-         frame.grid(row=0, column=0, sticky='news')
+            frame.place(x=0, y=0, relwidth=1, relheight=1)
 
         #WORK FRAME
-        #tk.Label(self.frame_work, image=img_text).place(x=0, y=0, relheight=1, relwidth=1)
-        tk.Button(self.frame_work, command=lambda: self.change_frame(1), image=img_slider_off).place(x=150, y=90)
-        tk.Button(self.frame_work, image=img_apps,  command=lambda: self.change_frame(2)).place(x=100, y=230) #APPS
-        tk.Label(self.frame_work, textvariable=self.minute).place(x=120, y=310)
-        tk.Label(self.frame_work, textvariable=self.seconds).place(x=120, y=330)
-        tk.Button(self.frame_work, image=img_start, command= self.submit_time).place(x=90, y=170) #START
-        tk.Button(self.frame_work, image=img_pause, command= self.pause_timer).place(x=150, y=170) #PAUSE
-        tk.Button(self.frame_work, image=img_stop, command=self.stop_timer).place(x=210, y=170) #STOP
+        tk.Label(self.frame_work, image=background_image_text).place(x=0, y=0) #background
+        tk.Button(self.frame_work,
+                   command=lambda: self.change_frame(1),
+                     image=img_slider_off,
+                     bd = 0,
+                     highlightthickness=0).place(x=150, y=90) #TO BREAK
+        tk.Button(self.frame_work,
+                  image=img_apps,
+                  command=lambda: self.change_frame(2),
+                  bd = 0,
+                  highlightthickness=0
+                  ).place(x=95, y=260) #APPS
+        tk.Label(self.frame_work, 
+                 textvariable=self.minute, 
+                 font=("Minecraft", 18),
+                 bg= "#c6cbc1",
+                 fg="#701c1c"
+                 ).place(x=145, y=130)
+        tk.Button(self.frame_work,
+                   image=img_start,
+                     command= self.submit_time,
+                     bd = 0,
+                     highlightthickness=0).place(x=90, y=200) #START
+        tk.Button(self.frame_work,
+                   image=img_pause,
+                     command= self.pause_timer,
+                     bd = 0,
+                     highlightthickness=0).place(x=150, y=200) #PAUSE
+        tk.Button(self.frame_work,
+                   image=img_stop,
+                     command=self.stop_timer,
+                     bd = 0,
+                     highlightthickness=0).place(x=210, y=200) #STOP
         self.w_time_var = tk.StringVar()
-        w_time_entry = tk.Entry(self.frame_work, textvariable=self.w_time_var, width=50)
-        w_time_entry.place(x=150, y=140)
+        w_time_entry = tk.Entry(self.frame_work, textvariable=self.w_time_var, width=8, font=("Minecraft",8))
+        w_time_entry.place(x=150, y=165)
+        tk.Label(self.frame_work,
+                  textvariable=self.break_t,
+                    font=("Minecraft", 9),
+                    bg= "#c6cbc1",
+                    fg="#6c6b5a").place(x=16, y=320)
+        tk.Label(self.frame_work,
+                  textvariable=self.work_t,
+                    font=("Minecraft", 9),
+                    bg= "#c6cbc1",
+                    fg="#6c6b5a").place(x=190, y=320)
         
         
         
         #BREAK FRAME
-        tk.Label(self.frame_break, image=img_text).place(x=0, y=0, relheight=1, relwidth=1)
-        tk.Label(self.frame_break, text='FRAME break').pack()
-        tk.Button(self.frame_break, command=lambda: self.change_frame(0), image=img_slider_on).pack()
-        tk.Button(self.frame_break, image=img_apps, command=lambda: self.change_frame(2)).pack(side='left')
+        tk.Label(self.frame_break, image=background_image_text).place(x=0, y=0) #background
+        tk.Button(self.frame_break,
+                   command=lambda: self.change_frame(0),
+                     image=img_slider_on,
+                     bd = 0,
+                     highlightthickness=0).place(x=150, y=90) #TO BREAK
+        tk.Button(self.frame_break,
+                  image=img_apps,
+                  command=lambda: self.change_frame(2),
+                  bd = 0,
+                  highlightthickness=0
+                  ).place(x=95, y=260) #APPS
+        tk.Label(self.frame_break, 
+                 textvariable=self.minute, 
+                 font=("Minecraft", 18),
+                 bg= "#c6cbc1",
+                 fg="#701c1c"
+                 ).place(x=145, y=130)
+        tk.Button(self.frame_break,
+                   image=img_start,
+                     command= self.submit_time,
+                     bd = 0,
+                     highlightthickness=0).place(x=90, y=200) #START
+        tk.Button(self.frame_break,
+                   image=img_pause,
+                     command= self.pause_timer,
+                     bd = 0,
+                     highlightthickness=0).place(x=150, y=200) #PAUSE
+        tk.Button(self.frame_break,
+                   image=img_stop,
+                     command=self.stop_timer,
+                     bd = 0,
+                     highlightthickness=0).place(x=210, y=200) #STOP
         self.b_time_var = tk.StringVar()
-        b_time_entry = tk.Entry(self.frame_break, textvariable=self.b_time_var)
-        b_time_entry.pack()
-        tk.Label(self.frame_break, textvariable=self.minute).pack()
-        tk.Label(self.frame_break, textvariable=self.seconds).pack()
-        tk.Button(self.frame_break, image=img_start, command= self.submit_time).pack() #START
-        tk.Button(self.frame_break, image=img_pause, command= self.pause_timer).pack() #PAUSE
-        tk.Button(self.frame_break, image=img_stop, command=self.stop_timer).pack() #STOP
+        w_time_entry = tk.Entry(self.frame_break, textvariable=self.b_time_var, width=8, font=("Minecraft",8))
+        w_time_entry.place(x=150, y=165)
+        tk.Label(self.frame_break,
+                  textvariable=self.break_t,
+                    font=("Minecraft", 9),
+                    bg= "#c6cbc1",
+                    fg="#6c6b5a").place(x=16, y=320)
+        tk.Label(self.frame_break,
+                  textvariable=self.work_t,
+                    font=("Minecraft", 9),
+                    bg= "#c6cbc1",
+                    fg="#6c6b5a").place(x=190, y=320)
+        
         #APPS FRAME
-        tk.Label(self.frame_apps, text='FRAME apps').pack(side='left')
-        tk.Button(self.frame_apps, text='Go back ->', command=lambda: self.change_frame(0)).pack(side='left')
-        tk.Button(self.frame_apps, text="ADD", command=self.set_allowed_process).pack()
-        tk.Button(self.frame_apps, text="Delete", command=self.delete_allowed_app).pack()
-        self.apps_list = tk.Listbox(self.frame_apps)
-        self.apps_list.pack()
+        tk.Label(self.frame_apps,
+                  image=background_image).place(x=0, y=0) #background
+        tk.Button(self.frame_apps,
+                   image=img_back,
+                     command=lambda: self.change_frame(0),
+                     bd = 0,
+                     highlightthickness=0).place(x=200, y=280) #GO BACK
+        tk.Button(self.frame_apps,
+                   image=img_add,
+                     command=self.set_allowed_process,
+                     bd = 0,
+                     highlightthickness=0).place(x=60, y=40) # ADD APP
+        tk.Button(self.frame_apps,
+                   image=img_delete,
+                     command=self.delete_allowed_app,
+                     bd = 0,
+                     highlightthickness=0).place(x=200, y=40) #DELETE APP
+        self.apps_list = tk.Listbox(self.frame_apps, font=("Minecraft", 10))
+        self.apps_list.place(x=190, y=100)
+        tk.Label(self.frame_apps,
+                  textvariable=self.break_t,
+                    font=("Minecraft", 9),
+                    bg= "#c6cbc1",
+                    fg="#6c6b5a").place(x=16, y=320)
+        tk.Label(self.frame_apps,
+                  textvariable=self.work_t,
+                    font=("Minecraft", 9),
+                    bg= "#c6cbc1",
+                    fg="#6c6b5a").place(x=190, y=320)
+        tk.Label(self.frame_apps,
+                  text= "To add new\n app click ""ADD"",\n switch to the\n desired window \nand wait until \n this window\n pops on top again:)",
+                    font=("Minecraft", 9),
+                    bg= "#c6cbc1",
+                    fg="#6c6b5a").place(x=30, y=140)
 
 
-        tk.Label(self.frame_work, textvariable=self.break_t,).place(x=150, y=320)
-        tk.Label(self.frame_work, textvariable=self.work_t,).place(x=150, y=330)
+        
         self.frame_work.tkraise()
         self.root.mainloop()
 

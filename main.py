@@ -1,11 +1,13 @@
 from time import sleep
 from win32gui import GetForegroundWindow
 from win32process import GetWindowThreadProcessId
-import pandas as pd
 import psutil
 import tkinter as tk
 from tkinter import messagebox
-import sys
+from PIL import Image, ImageTk
+
+
+            
 class Evil_Pomodoro():
     def __init__(self):
         self.allowed_windows = []
@@ -137,6 +139,7 @@ class Evil_Pomodoro():
             self.frame_break.tkraise()
         elif frame == 2:
             self.frame_apps.tkraise() 
+    
 
     def setup_app(self):
         self.root = tk.Tk()
@@ -151,7 +154,7 @@ class Evil_Pomodoro():
         background_image = tk.PhotoImage(file=".\\art\\background.png")
         background_image_text = tk.PhotoImage(file=".\\art\\background_text.png")
 
-        
+        # Setting up all the images
         img_slider_on = tk.PhotoImage(file=".\\art\\slider-on.png")
         img_slider_off = tk.PhotoImage(file=".\\art\\slider-off.png")
         img_pause = tk.PhotoImage(file=".\\art\\pause.png")
@@ -161,6 +164,23 @@ class Evil_Pomodoro():
         img_back = tk.PhotoImage(file=".\\art\\back.png")
         img_add = tk.PhotoImage(file=".\\art\\add.png")
         img_delete = tk.PhotoImage(file=".\\art\\delete.png")
+        # Setting up GIFs
+        frame_number = 8
+        gif_work = [tk.PhotoImage(file=".\\art\\work_tomat.gif", format = 'gif -index %i' %(i)) for i in range(frame_number)]
+        gif_break = [tk.PhotoImage(file=".\\art\\break_tomat.gif", format = 'gif -index %i' %(i)) for i in range(frame_number)]
+
+        def update(ind):
+
+            frame = gif_break[ind]
+            ind += 1
+            if ind == frame_number:
+                ind = 0
+            label.configure(image=frame)
+            self.root.after(100, update, ind)
+        label = tk.Label(self.frame_work)
+        
+        self.root.after(0, update, 0)
+
 
         self.minute = tk.StringVar(self.root)
         self.minute.set("00:00")
@@ -309,10 +329,38 @@ class Evil_Pomodoro():
                     bg= "#c6cbc1",
                     fg="#6c6b5a").place(x=30, y=140)
 
-
+        gif_work = AnimatedGIF(self.frame_work, ".\\art\\work_tomat.gif")
+        gif_work.place(x=147, y=20)
+        gif_break = AnimatedGIF(self.frame_break, ".\\art\\break_tomat.gif")
+        gif_break.place(x=147, y=20)
         
         self.frame_work.tkraise()
+       
         self.root.mainloop()
+
+class AnimatedGIF(tk.Label):
+    def __init__(self, master, gif_path):
+        tk.Label.__init__(self, master)
+        self.frames = []
+        self.current_frame = 0
+
+       
+        gif = Image.open(gif_path)
+        try:
+            while True:
+                frame = ImageTk.PhotoImage(gif.copy())
+                self.frames.append(frame)
+                gif.seek(len(self.frames))  
+        except EOFError:
+            pass  
+
+        self.update_animation()
+
+    def update_animation(self):
+        if self.frames:
+            self.configure(image=self.frames[self.current_frame], bg= "#c6cbc1")
+            self.current_frame = (self.current_frame + 1) % len(self.frames)
+            self.after(600, self.update_animation) 
 
 if __name__ == "__main__":
     

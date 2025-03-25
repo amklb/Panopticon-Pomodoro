@@ -131,7 +131,7 @@ class Evil_Pomodoro():
             messagebox.showwarning(title= "Give Tomato a break!", message="Please enter vaild time in minutes:<")
 
     def change_frame(self, frame):
-        self.paused = True
+        self.stop_timer()
         self.frame = frame
         if frame == 0: # WORK FRAME
             self.frame_work.tkraise()
